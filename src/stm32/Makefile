@@ -94,10 +94,6 @@ src-$(CONFIG_USBCANBUS) += $(usb-src-y) $(canbus-src-y)
 src-$(CONFIG_USBCANBUS) += stm32/chipid.c generic/usb_canbus.c
 src-$(CONFIG_HAVE_GPIO_HARD_PWM) += stm32/hard_pwm.c
 
-t5uid1-src-$(CONFIG_T5UID1_SERIAL) := stm32/serial_t5uid1.c
-t5uid1-src-$(CONFIG_MACH_STM32F0) := stm32/stm32f0_serial_t5uid1.c
-src-$(CONFIG_T5UID1_SERIAL) += $(t5uid1-src-y) generic/t5uid1_irq.c
-
 # Binary output file rules
 target-y += $(OUT)klipper.bin
 
@@ -117,3 +113,5 @@ flash: $(OUT)klipper.bin lib/hidflash/hid-flash
 serialflash: $(OUT)klipper.bin
 	@echo "  Flashing $< to $(FLASH_DEVICE) via stm32flash"
 	$(Q)stm32flash -w $< -v -g 0 $(FLASH_DEVICE)
+
+include src/stm32/t5uid1/Makefile
