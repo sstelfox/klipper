@@ -4004,3 +4004,31 @@ I2C bus.
 #   On some micro-controllers changing this value has no effect. The
 #   default is 100000.
 ```
+
+### Common UART settings
+
+The following parameters are generally available for devices using a
+UART bus.
+
+```
+#uart_mcu:
+#   The name of the micro-controller that the chip is connected to.
+#   The default is "mcu".
+#uart_bus:
+#   If the micro-controller supports multiple UART busses then one may
+#   specify the micro-controller bus name here. The default depends on
+#   the type of micro-controller.
+#uart_baud:
+#   The baud rate to use when communicating with the device. The
+#   default is 115200.
+#uart_rx_buffer:
+#   The size of the receive buffer (in bytes) used by the
+#   micro-controller. The default is 64.
+#uart_tx_buffer:
+#   The size of the transmit buffer (in bytes) used by the
+#   micro-controller. The default is 128.
+#uart_rx_interval:
+#   The interval (in milliseconds) at which the receive buffer will be
+#   flushed by the micro-controller. If this value is 0, the buffer is flushed
+#   only when it is close to full. The default is 50.
+```
