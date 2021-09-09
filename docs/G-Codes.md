@@ -841,3 +841,63 @@ Palette prints work by embedding special OCodes (Omega Codes)
 in the GCode file:
 - `O1`...`O32`: These codes are read from the GCode stream and processed
   by this module and passed to the Palette 2 device.
+
+### DGUS Display Commands
+
+The following commands are available when the
+[dgus_display config section](Config_Reference.md#dgus-display-support)
+is enabled with a [T5UID1 display](Config_Reference.md#t5uid1-display):
+- `DGUS_PLAY_SOUND [DISPLAY=<config_name>] START=<start> [LEN=<len>]
+  [VOLUME=<volume>]`: Plays the sound stored at index `START` on the display.
+  `LEN` is the number of blocks occupied by the sound (the default is 1).
+  `VOLUME` ranges from 0 to 100 and defaults to the current volume if unset.
+- `DGUS_STOP_SOUND [DISPLAY=<config_name>]`: Stops any currently playing sound.
+- `DGUS_GET_VOLUME [DISPLAY=<config_name>]`: Prints the current volume.
+- `DGUS_SET_VOLUME [DISPLAY=<config_name>] VOLUME=<volume> [SAVE=1]`: Sets the
+  volume (ranging from 0 to 100). If `SAVE` is enabled, the value is updated
+  in the config. The config can then be persisted by issuing a `SAVE_CONFIG`
+  command.
+- `DGUS_GET_BRIGHTNESS [DISPLAY=<config_name>]`: Prints the current brightness.
+- `DGUS_SET_BRIGHTNESS [DISPLAY=<config_name>] BRIGHTNESS=<brightness>
+  [SAVE=1]`: Sets the brightness (ranging from 0 to 100). If `SAVE` is enabled,
+  the value is updated in the config. The config can then be persisted by
+  issuing a `SAVE_CONFIG` command.
+
+The following additional commands are available for the
+[DGUSPrinterMenu implementation](Config_Reference.md#t5uid1-display-dgusprintermenu):
+- `DGUS_REQUEST_UPDATE [DISPLAY=<config_name>]`: Requests a display update.
+- `DGUS_SET_MENU [DISPLAY=<config_name>] MENU=<menu>
+  [PARAM_<name>=<value>]`: Switches to the menu named `MENU`. Additional
+  menu parameters can be passed using `PARAM_<name>` parameters.
+- `DGUS_SET_MESSAGE [DISPLAY=<config_name>] MESSAGE=<message>`: Sets the
+  display status message to `MESSAGE`.
+
+The following additional commands are available for the
+[debug implementation](Config_Reference.md#t5uid1-display-debug):
+- `DGUS_READ [DISPLAY=<config_name>] ADDR=<addr> WLEN=<wlen>`: Reads `WLEN`
+  words from the display RAM at address `ADDR`.
+- `DGUS_WRITE [DISPLAY=<config_name>] ADDR=<addr> [DATA_STR=<data>]
+  [DATA=<data>]`: Writes data to the display RAM at address `ADDR`. Either
+  `DATA_STR` (string) or `DATA` (hex string) must be provided.
+- `DGUS_SET_PAGE [DISPLAY=<config_name>] PAGE=<page>`: Switches to the page
+  with id `PAGE`.
+- `DGUS_ENABLE_CONTROL [DISPLAY=<config_name>] PAGE=<page> TYPE=<type>
+  INDEX=<index>`: Enables a touch control. `PAGE` is control page id. `TYPE`
+  is the type of control. `INDEX` is the index of the control in the page.
+- `DGUS_DISABLE_CONTROL [DISPLAY=<config_name>] PAGE=<page> TYPE=<type>
+  INDEX=<index>`: Disables a touch control. `PAGE` is control page id. `TYPE`
+  is the type of control. `INDEX` is the index of the control in the page.
+- `DGUS_READ_CONTROL [DISPLAY=<config_name>] PAGE=<page> TYPE=<type>
+  INDEX=<index>`: Reads a touch control data to the display RAM. `PAGE` is
+  control page id. `TYPE` is the type of control. `INDEX` is the index of
+  the control in the page.
+- `DGUS_WRITE_CONTROL [DISPLAY=<config_name>] PAGE=<page> TYPE=<type>
+  INDEX=<index> [DATA=<data>]`: Writes a control data from the display RAM.
+  `PAGE` is control page id. `TYPE` is the type of control. `INDEX` is the
+  index of the control in the page. If `DATA` (hex string) is specified,
+  it is written to the display RAM before the control is updated.
+- `DGUS_READ_NOR [DISPLAY=<config_name>] NOR_ADDR=<nor_addr> ADDR=<addr>
+  WLEN=<wlen>`: Reads `WLEN` words from the display NOR at address `NOR_ADDR`,
+  writing them to the display RAM at address `ADDR`.
+
+For all these commands, the `DISPLAY` parameter defaults to "default".
