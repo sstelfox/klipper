@@ -162,6 +162,10 @@ config HAVE_GPIO_SDIO
     bool
 config HAVE_GPIO_I2C
     bool
+    default n
+config HAVE_GPIO_UART
+    bool
+    default n
 config HAVE_GPIO_HARD_PWM
     bool
 config HAVE_STRICT_TIMING
