@@ -1379,3 +1379,246 @@ command will probe the points specified in the config and then make independent
 adjustments to each Z stepper to compensate for tilt. See the PROBE command for
 details on the optional probe parameters. The optional `HORIZONTAL_MOVE_Z`
 value overrides the `horizontal_move_z` option specified in the config file.
+
+### Skew Correction
+
+The following commands are available when the
+[skew_correction config section](Config_Reference.md#skew_correction)
+is enabled (also see the [skew correction guide](skew_correction.md)):
+- `SET_SKEW [XY=<ac_length,bd_length,ad_length>] [XZ=<ac,bd,ad>]
+  [YZ=<ac,bd,ad>] [CLEAR=<0|1>]`: Configures the [skew_correction]
+  module with measurements (in mm) taken from a calibration print.
+  One may enter measurements for any combination of planes, planes not
+  entered will retain their current value. If `CLEAR=1` is entered
+  then all skew correction will be disabled.
+- `GET_CURRENT_SKEW`: Reports the current printer skew for each plane
+  in both radians and degrees. The skew is calculated based on
+  parameters provided via the `SET_SKEW` gcode.
+- `CALC_MEASURED_SKEW [AC=<ac_length>] [BD=<bd_length>]
+  [AD=<ad_length>]`: Calculates and reports the skew (in radians and
+  degrees) based on a measured print. This can be useful for
+  determining the printer's current skew after correction has been
+  applied. It may also be useful before correction is applied to
+  determine if skew correction is necessary. See skew_correction.md
+  for details on skew calibration objects and measurements.
+- `SKEW_PROFILE [LOAD=<name>] [SAVE=<name>] [REMOVE=<name>]`: Profile
+  management for skew_correction. LOAD will restore skew state from
+  the profile matching the supplied name. SAVE will save the current
+  skew state to a profile matching the supplied name. Remove will
+  delete the profile matching the supplied name from persistent
+  memory. Note that after SAVE or REMOVE operations have been run the
+  SAVE_CONFIG gcode must be run to make the changes to peristent
+  memory permanent.
+
+### Delayed GCode
+
+The following command is enabled if a
+[delayed_gcode config section](Config_Reference.md#delayed_gcode) has
+been enabled (also see the
+[template guide](Command_Templates.md#delayed-gcodes)):
+- `UPDATE_DELAYED_GCODE [ID=<name>] [DURATION=<seconds>]`:  Updates the
+  delay duration for the identified [delayed_gcode] and starts the timer
+  for gcode execution.  A value of 0 will cancel a pending delayed gcode
+  from executing.
+
+### Save Variables
+
+The following command is enabled if a
+[save_variables config section](Config_Reference.md#save_variables)
+has been enabled:
+- `SAVE_VARIABLE VARIABLE=<name> VALUE=<value>`: Saves the variable to
+  disk so that it can be used across restarts. All stored variables
+  are loaded into the `printer.save_variables.variables` dict at
+  startup and can be used in gcode macros. The provided VALUE is
+  parsed as a Python literal.
+
+### Resonance compensation
+
+The following command is enabled if an
+[input_shaper config section](Config_Reference.md#input_shaper) has
+been enabled (also see the
+[resonance compensation guide](Resonance_Compensation.md)):
+- `SET_INPUT_SHAPER [SHAPER_FREQ_X=<shaper_freq_x>]
+  [SHAPER_FREQ_Y=<shaper_freq_y>]
+  [DAMPING_RATIO_X=<damping_ratio_x>]
+  [DAMPING_RATIO_Y=<damping_ratio_y>] [SHAPER_TYPE=<shaper>]
+  [SHAPER_TYPE_X=<shaper_type_x>] [SHAPER_TYPE_Y=<shaper_type_y>]`:
+  Modify input shaper parameters. Note that SHAPER_TYPE parameter
+  resets input shaper for both X and Y axes even if different shaper
+  types have been configured in [input_shaper] section. SHAPER_TYPE
+  cannot be used together with either of SHAPER_TYPE_X and
+  SHAPER_TYPE_Y parameters. See
+  [config reference](Config_Reference.md#input_shaper) for more
+  details on each of these parameters.
+
+### Temperature Fan Commands
+
+The following command is available when a
+[temperature_fan config section](Config_Reference.md#temperature_fan)
+is enabled:
+- `SET_TEMPERATURE_FAN_TARGET temperature_fan=<temperature_fan_name>
+  [target=<target_temperature>] [min_speed=<min_speed>]  [max_speed=<max_speed>]`: Sets the target temperature for a
+  temperature_fan. If a target is not supplied, it is set to the
+  specified temperature in the config file. If speeds are not supplied, no change is applied.
+
+### Adxl345 Accelerometer Commands
+
+The following commands are available when an
+[adxl345 config section](Config_Reference.md#adxl345) is enabled:
+- `ACCELEROMETER_MEASURE [CHIP=<config_name>] [NAME=<value>]`: Starts
+  accelerometer measurements at the requested number of samples per
+  second. If CHIP is not specified it defaults to "adxl345". The
+  command works in a start-stop mode: when executed for the first
+  time, it starts the measurements, next execution stops them. The
+  results of measurements are written to a file named
+  `/tmp/adxl345-<chip>-<name>.csv` where `<chip>` is the name of the
+  accelerometer chip (`my_chip_name` from `[adxl345 my_chip_name]`)
+  and `<name>` is the optional NAME parameter. If NAME is not
+  specified it defaults to the current time in "YYYYMMDD_HHMMSS"
+  format. If the accelerometer does not have a name in its config
+  section (simply `[adxl345]`) then `<chip>` part of the name is not
+  generated.
+- `ACCELEROMETER_QUERY [CHIP=<config_name>] [RATE=<value>]`: queries
+  accelerometer for the current value. If CHIP is not specified it
+  defaults to "adxl345". If RATE is not specified, the default value
+  is used. This command is useful to test the connection to the
+  ADXL345 accelerometer: one of the returned values should be a
+  free-fall acceleration (+/- some noise of the chip).
+- `ADXL345_DEBUG_READ [CHIP=<config_name>] REG=<register>`: queries
+  ADXL345 register <register> (e.g. 44 or 0x2C). Can be useful for
+  debugging purposes.
+- `ADXL345_DEBUG_WRITE [CHIP=<config_name>] REG=<reg> VAL=<value>`:
+  writes raw <value> into a register <register>. Both <value> and
+  <register> can be a decimal or a hexadecimal integer. Use with care,
+  and refer to ADXL345 data sheet for the reference.
+
+### Resonance Testing Commands
+
+The following commands are available when a
+[resonance_tester config section](Config_Reference.md#resonance_tester)
+is enabled (also see the
+[measuring resonances guide](Measuring_Resonances.md)):
+- `MEASURE_AXES_NOISE`: Measures and outputs the noise for all axes of
+  all enabled accelerometer chips.
+- `TEST_RESONANCES AXIS=<axis> OUTPUT=<resonances,raw_data>
+  [NAME=<name>] [FREQ_START=<min_freq>] [FREQ_END=<max_freq>]
+  [HZ_PER_SEC=<hz_per_sec>] [INPUT_SHAPING=[<0:1>]]`: Runs the resonance
+  test in all configured probe points for the requested <axis>
+  and measures the acceleration using the accelerometer chips configured
+  for the respective axis. <axis> can either be X or Y, or specify an
+  arbitrary direction as `AXIS=dx,dy`, where dx and dy are floating point
+  numbers defining a direction vector (e.g. `AXIS=X`, `AXIS=Y`, or
+  `AXIS=1,-1` to define a diagonal direction). Note that `AXIS=dx,dy` and
+  `AXIS=-dx,-dy` is equivalent. If `INPUT_SHAPING=0` or not set (default),
+  disables input shaping for the resonance testing, because it is not valid
+  to run the resonance testing with the input shaper enabled.
+  `OUTPUT` parameter is a comma-separated list of which outputs will be
+  written. If `raw_data` is requested, then the raw accelerometer data
+  is written into a file or a series of files
+  `/tmp/raw_data_<axis>_[<point>_]<name>.csv` with (`<point>_` part of
+  the name generated only if more than 1 probe point is configured).
+  If `resonances` is specified, the frequency response is calculated
+  (across all probe points) and written into
+  `/tmp/resonances_<axis>_<name>.csv` file. If unset, OUTPUT defaults
+  to `resonances`, and NAME defaults to the current time in
+  "YYYYMMDD_HHMMSS" format.
+- `SHAPER_CALIBRATE [AXIS=<axis>] [NAME=<name>]
+  [FREQ_START=<min_freq>] [FREQ_END=<max_freq>]
+  [HZ_PER_SEC=<hz_per_sec>] [MAX_SMOOTHING=<max_smoothing>]`:
+  Similarly to `TEST_RESONANCES`, runs the resonance test as configured,
+  and tries to find the optimal parameters for the input shaper for the
+  requested axis (or both X and Y axes if `AXIS` parameter is unset).
+  If `MAX_SMOOTHING` is unset, its value is taken from `[resonance_tester]`
+  section, with the default being unset. See the
+  [Max smoothing](Measuring_Resonances.md#max-smoothing) of the measuring
+  resonances guide for more information on the use of this feature.
+  The results of the tuning are printed to the console, and the frequency
+  responses and the different input shapers values are written to a CSV
+  file(s) `/tmp/calibration_data_<axis>_<name>.csv`. Unless specified, NAME
+  defaults to the current time in "YYYYMMDD_HHMMSS" format. Note that
+  the suggested input shaper parameters can be persisted in the config
+  by issuing `SAVE_CONFIG` command.
+
+### Palette 2 Commands
+
+The following command is available when the
+[palette2 config section](Config_Reference.md#palette2)
+is enabled:
+- `PALETTE_CONNECT`: This command initializes the connection with
+  the Palette 2.
+- `PALETTE_DISCONNECT`: This command disconnects from the Palette 2.
+- `PALETTE_CLEAR`: This command instructs the Palette 2 to clear all of the
+  input and output paths of filament.
+- `PALETTE_CUT`: This command instructs the Palette 2 to cut the filament
+  currently loaded in the splice core.
+- `PALETTE_SMART_LOAD`: This command start the smart load sequence on the
+  Palette 2. Filament is loaded automatically by extruding it the distance
+  calibrated on the device for the printer, and instructs the Palette 2
+  once the loading has been completed. This command is the same as pressing
+  **Smart Load** directly on the Palette 2 screen after the filament load
+  is complete.
+
+Palette prints work by embedding special OCodes (Omega Codes)
+in the GCode file:
+- `O1`...`O32`: These codes are read from the GCode stream and processed
+  by this module and passed to the Palette 2 device.
+
+### DGUS Display Commands
+
+The following commands are available when the
+[dgus_display config section](Config_Reference.md#dgus-display-support)
+is enabled with a [T5UID1 display](Config_Reference.md#t5uid1-display):
+- `DGUS_PLAY_SOUND [DISPLAY=<config_name>] START=<start> [LEN=<len>]
+  [VOLUME=<volume>]`: Plays the sound stored at index `START` on the display.
+  `LEN` is the number of blocks occupied by the sound (the default is 1).
+  `VOLUME` ranges from 0 to 100 and defaults to the current volume if unset.
+- `DGUS_STOP_SOUND [DISPLAY=<config_name>]`: Stops any currently playing sound.
+- `DGUS_GET_VOLUME [DISPLAY=<config_name>]`: Prints the current volume.
+- `DGUS_SET_VOLUME [DISPLAY=<config_name>] VOLUME=<volume> [SAVE=1]`: Sets the
+  volume (ranging from 0 to 100). If `SAVE` is enabled, the value is updated
+  in the config. The config can then be persisted by issuing a `SAVE_CONFIG`
+  command.
+- `DGUS_GET_BRIGHTNESS [DISPLAY=<config_name>]`: Prints the current brightness.
+- `DGUS_SET_BRIGHTNESS [DISPLAY=<config_name>] BRIGHTNESS=<brightness>
+  [SAVE=1]`: Sets the brightness (ranging from 0 to 100). If `SAVE` is enabled,
+  the value is updated in the config. The config can then be persisted by
+  issuing a `SAVE_CONFIG` command.
+
+The following additional commands are available for the
+[DGUSPrinterMenu implementation](Config_Reference.md#t5uid1-display-dgusprintermenu):
+- `DGUS_REQUEST_UPDATE [DISPLAY=<config_name>]`: Requests a display update.
+- `DGUS_SET_MENU [DISPLAY=<config_name>] MENU=<menu>
+  [PARAM_<name>=<value>]`: Switches to the menu named `MENU`. Additional
+  menu parameters can be passed using `PARAM_<name>` parameters.
+- `DGUS_SET_MESSAGE [DISPLAY=<config_name>] MESSAGE=<message>`: Sets the
+  display status message to `MESSAGE`.
+
+The following additional commands are available for the
+[debug implementation](Config_Reference.md#t5uid1-display-debug):
+- `DGUS_READ [DISPLAY=<config_name>] ADDR=<addr> WLEN=<wlen>`: Reads `WLEN`
+  words from the display RAM at address `ADDR`.
+- `DGUS_WRITE [DISPLAY=<config_name>] ADDR=<addr> [DATA_STR=<data>]
+  [DATA=<data>]`: Writes data to the display RAM at address `ADDR`. Either
+  `DATA_STR` (string) or `DATA` (hex string) must be provided.
+- `DGUS_SET_PAGE [DISPLAY=<config_name>] PAGE=<page>`: Switches to the page
+  with id `PAGE`.
+- `DGUS_ENABLE_CONTROL [DISPLAY=<config_name>] PAGE=<page> TYPE=<type>
+  INDEX=<index>`: Enables a touch control. `PAGE` is control page id. `TYPE`
+  is the type of control. `INDEX` is the index of the control in the page.
+- `DGUS_DISABLE_CONTROL [DISPLAY=<config_name>] PAGE=<page> TYPE=<type>
+  INDEX=<index>`: Disables a touch control. `PAGE` is control page id. `TYPE`
+  is the type of control. `INDEX` is the index of the control in the page.
+- `DGUS_READ_CONTROL [DISPLAY=<config_name>] PAGE=<page> TYPE=<type>
+  INDEX=<index>`: Reads a touch control data to the display RAM. `PAGE` is
+  control page id. `TYPE` is the type of control. `INDEX` is the index of
+  the control in the page.
+- `DGUS_WRITE_CONTROL [DISPLAY=<config_name>] PAGE=<page> TYPE=<type>
+  INDEX=<index> [DATA=<data>]`: Writes a control data from the display RAM.
+  `PAGE` is control page id. `TYPE` is the type of control. `INDEX` is the
+  index of the control in the page. If `DATA` (hex string) is specified,
+  it is written to the display RAM before the control is updated.
+- `DGUS_READ_NOR [DISPLAY=<config_name>] NOR_ADDR=<nor_addr> ADDR=<addr>
+  WLEN=<wlen>`: Reads `WLEN` words from the display NOR at address `NOR_ADDR`,
+  writing them to the display RAM at address `ADDR`.
+
+For all these commands, the `DISPLAY` parameter defaults to "default".
