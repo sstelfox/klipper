@@ -138,14 +138,14 @@ console_task(void)
 DECL_TASK(console_task);
 
 // Encode and transmit a "response" message
-void
+uint_fast8_t
 console_sendf(const struct command_encoder *ce, va_list args)
 {
     // Verify space for message
     uint32_t send_push_pos = SHARED_MEM->send_push_pos;
     struct shared_response_buffer *s = &SHARED_MEM->send_data[send_push_pos];
     if (readl(&s->count))
-        return;
+        return 0;
 
     // Generate message
     uint32_t msglen = command_encodef(s->data, ce, args);
@@ -155,6 +155,8 @@ console_sendf(const struct command_encoder *ce, va_list args)
     write_r31(R31_WRITE_IRQ_SELECT | (KICK_PRU0_EVENT - R31_WRITE_IRQ_OFFSET));
     SHARED_MEM->send_push_pos = (
         (send_push_pos + 1) % ARRAY_SIZE(SHARED_MEM->send_data));
+
+    return 1;
 }
 
 void
