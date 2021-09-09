@@ -31,7 +31,14 @@ def resolve_bus_name(mcu, param, bus):
     if reserve_pins is not None:
         pin_resolver = ppins.get_pin_resolver(mcu_name)
         for pin in reserve_pins.split(','):
-            pin_resolver.reserve_pin(pin, bus)
+            if pin.startswith('[') and pin.endswith(']'):
+                interface = pin[1:-1]
+                if interface == '_':
+                    interface = bus
+                pin_resolver.reserve_interface(interface, "%s[%s]" % (
+                    param, bus))
+            else:
+                pin_resolver.reserve_pin(pin, bus)
     return bus
 
 
