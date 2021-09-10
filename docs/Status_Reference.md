@@ -554,3 +554,33 @@ The following information is available in the `z_tilt` object (this
 object is available if z_tilt is defined):
 - `applied`: True if the z-tilt leveling process has been run and completed
   successfully.
+
+## neopixel / dotstar
+The following information is available for each `[neopixel led_name]` and
+`[dotstar led_name]` defined in printer.cfg:
+- `color_data`:  An array of objects, with each object containing the RGBW
+  values for a led in the chain.  Note that not all configurations will contain
+  a white value.  Each value is represented as a float from 0 to 1.  For
+  example, the blue value of the second neopixel in a chain could be accessed
+  at `printer["neopixel <config_name>"].color_data[1].B`.
+
+## dgus_status
+
+The following information is available in the `dgus_status` object
+(this object is automatically available if a
+[dgus_display](Config_Reference.md#dgus-display-support) config section is
+defined):
+- `state`: The current state of the printer as tracked by the
+  dgus_status module. It is one of the following strings: "printing",
+  "paused", "busy" or "idle".
+- `print_from`: The source of the current print (or `None`). It can be one
+  of the following strings: "sd" or "serial".
+- `progress`: The progress of the current print (or `None`). It is retrieved
+  from the last `M73` G-Code command, or from `virtual_sdcard.progress`.
+- `filename`: The name of the currently printing file (or `None`). It is
+  retrieved from the last `DGUS_SET_FILENAME` command, or from
+  `print_stats.filename`.
+- `printing_time`: The duration of the current print in seconds (or `None`).
+- `remaining_time`: The estimated remaining time for the current print in
+  seconds (or `None`). It is retrieved from the last `M73` G-Code command, or
+  calculated using the current print progress and duration.
