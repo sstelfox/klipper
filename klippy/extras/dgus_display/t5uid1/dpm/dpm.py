@@ -274,7 +274,7 @@ class DGUSPrinterMenu:
             msg = msg[2:].strip()
         else:
             msg = msg.strip()
-        if msg == "ok":
+        if msg == "ok" or msg.startswith("ok "):
             return
         self.set_message(msg)
 
