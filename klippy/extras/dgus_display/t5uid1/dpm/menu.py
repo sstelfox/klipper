@@ -461,7 +461,7 @@ class MenuHome(Menu):
                 icons.append(name)
                 temp = self.heaters[name].get_temp(eventtime)
                 current = "%.0f" % temp[0]
-                if temp[1] > 0 and abs(temp[0] - temp[1]) > 2:
+                if temp[1] > 0:
                     target = "%.0f" % temp[1]
                 else:
                     target = ""
