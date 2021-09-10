@@ -91,6 +91,19 @@ The following standard G-Code commands are available if a
 - Display Message: `M117 <message>`
 - Set build percentage: `M73 P<percent>`
 
+### G-Code DGUS display commands
+
+The following standard G-Code commands are available if a
+[dgus_display config section](Config_Reference.md#dgus-display-support) is
+enabled:
+- Set print progress and/or remaining time: `M73 [P<percent>] [R<remaining>]`
+
+For the
+[T5UID1 DGUSPrinterMenu implementation](Config_Reference.md#t5uid1-display-dgusprintermenu),
+the following standard G-Code commands are also available:
+- Set the display status message: `M117 <message>`
+- Play a sound from the display: `M300 [S<start>] [P<len>] [V<volume>]`
+
 ### Other available G-Code commands
 
 The following standard G-Code commands are currently available, but
@@ -846,7 +859,12 @@ in the GCode file:
 
 The following commands are available when the
 [dgus_display config section](Config_Reference.md#dgus-display-support)
-is enabled with a [T5UID1 display](Config_Reference.md#t5uid1-display):
+is enabled:
+- `DGUS_SET_FILENAME NAME=<name>`: Sets the name of the file being printed
+  to `NAME`. This is used by the `dgus_status` module.
+
+For [T5UID1 displays](Config_Reference.md#t5uid1-display), the following
+commands are also available:
 - `DGUS_PLAY_SOUND [DISPLAY=<config_name>] START=<start> [LEN=<len>]
   [VOLUME=<volume>]`: Plays the sound stored at index `START` on the display.
   `LEN` is the number of blocks occupied by the sound (the default is 1).
@@ -864,7 +882,7 @@ is enabled with a [T5UID1 display](Config_Reference.md#t5uid1-display):
   issuing a `SAVE_CONFIG` command.
 
 The following additional commands are available for the
-[DGUSPrinterMenu implementation](Config_Reference.md#t5uid1-display-dgusprintermenu):
+[T5UID1 DGUSPrinterMenu implementation](Config_Reference.md#t5uid1-display-dgusprintermenu):
 - `DGUS_REQUEST_UPDATE [DISPLAY=<config_name>]`: Requests a display update.
 - `DGUS_SET_MENU [DISPLAY=<config_name>] MENU=<menu>
   [PARAM_<name>=<value>]`: Switches to the menu named `MENU`. Additional
@@ -873,7 +891,7 @@ The following additional commands are available for the
   display status message to `MESSAGE`.
 
 The following additional commands are available for the
-[debug implementation](Config_Reference.md#t5uid1-display-debug):
+[T5UID1 debug implementation](Config_Reference.md#t5uid1-display-debug):
 - `DGUS_READ [DISPLAY=<config_name>] ADDR=<addr> WLEN=<wlen>`: Reads `WLEN`
   words from the display RAM at address `ADDR`.
 - `DGUS_WRITE [DISPLAY=<config_name>] ADDR=<addr> [DATA_STR=<data>]
