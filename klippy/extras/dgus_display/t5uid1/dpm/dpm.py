@@ -269,6 +269,7 @@ class DGUSPrinterMenu:
 
     output_ignore_r = [
         re.compile(r"^ok(\s|$)"),
+        re.compile(r"^action:.+"),
         re.compile(r"^(B|T\d+):\d+(\.\d+)?\s*\/\s*\d+(\.\d+)?")
     ]
     def output_cb(self, msg):
