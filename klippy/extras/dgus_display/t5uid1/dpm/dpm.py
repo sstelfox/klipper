@@ -3,7 +3,7 @@
 # Copyright (C) 2021  Desuuuu <contact@desuuuu.com>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
-import os, ast, logging, threading
+import os, re, ast, logging, threading
 from . import menu as m_menu
 from .. import lib, control as m_control, page as m_page
 
@@ -267,6 +267,10 @@ class DGUSPrinterMenu:
         self.reactor.update_timer(self.update_timer, eventtime + UPDATE_TIME)
         self.reactor.update_timer(self.message_timer, self.reactor.NOW)
 
+    output_ignore_r = [
+        re.compile(r"^ok(\s|$)"),
+        re.compile(r"^(B|T\d+):\d+(\.\d+)?\s*\/\s*\d+(\.\d+)?")
+    ]
     def output_cb(self, msg):
         if msg.startswith("echo:"):
             msg = msg[5:].strip()
@@ -274,8 +278,9 @@ class DGUSPrinterMenu:
             msg = msg[2:].strip()
         else:
             msg = msg.strip()
-        if msg == "ok" or msg.startswith("ok "):
-            return
+        for r in self.output_ignore_r:
+            if r.search(msg):
+                return
         self.set_message(msg)
 
     def handle_restart(self, print_time):
