@@ -219,8 +219,8 @@ class DGUSPrinterMenu:
             self.set_page("boot")
         except self.t5uid1.error:
             logging.warn("DPM: Initialization failed")
-            self.set_page("core_update", True)
-            self.t5uid1.send(lib.play_sound(3, build=True))
+            self.set_page("core_update", wait=False)
+            self.t5uid1.play_sound(3, wait=False)
             return
 
         self.gui_version, self.os_version = self.t5uid1.get_versions()
@@ -228,8 +228,8 @@ class DGUSPrinterMenu:
         if (self.gui_version < GUI_MIN_VERSION
             or self.os_version < OS_MIN_VERSION):
             logging.warn("DPM: Core firmware is outdated")
-            self.set_page("core_update", True)
-            self.t5uid1.send(lib.play_sound(3, build=True))
+            self.set_page("core_update", wait=False)
+            self.t5uid1.play_sound(3, wait=False)
             return
 
         self.t5uid1.read_nor(0x00, 0x1000, 4)
@@ -245,8 +245,8 @@ class DGUSPrinterMenu:
                 and self.version_min == DPM_MIN_VERSION_MIN
                 and self.version_pat < DPM_MIN_VERSION_PAT)):
             logging.warn("DPM: Firmware is outdated")
-            self.set_page("update", True)
-            self.t5uid1.send(lib.play_sound(3, build=True))
+            self.set_page("update", wait=False)
+            self.t5uid1.play_sound(3, wait=False)
             return
 
         self.t5uid1.play_sound(1)
@@ -286,7 +286,7 @@ class DGUSPrinterMenu:
 
     def handle_restart(self, print_time):
         try:
-            self.set_page("boot", True)
+            self.set_page("boot", wait=False)
         except Exception:
             pass
         self.handle_disconnect()
@@ -299,15 +299,12 @@ class DGUSPrinterMenu:
         self.reactor.update_timer(self.update_timer, self.reactor.NEVER)
         self.reactor.update_timer(self.message_timer, self.reactor.NEVER)
 
-    def set_page(self, name, bypass=False):
+    def set_page(self, name, wait=True):
         if name not in self.pages:
             raise self.printer.command_error("Invalid page")
         if name == self.page:
             return
-        if bypass:
-            self.t5uid1.send(lib.set_page(self.pages[name].id, build=True))
-        else:
-            self.t5uid1.set_page(self.pages[name].id)
+        self.t5uid1.set_page(self.pages[name].id, wait=wait)
         self.page = name
 
     def get_current_menu(self):

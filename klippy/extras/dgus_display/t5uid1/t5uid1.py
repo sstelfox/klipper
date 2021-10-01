@@ -71,8 +71,8 @@ class T5UID1:
         return max(omin, min(result, omax))
 
     def _handle_ready(self):
-        self.set_volume(self._volume, force=True)
-        self.set_brightness(self._brightness, force=True)
+        self.set_volume(self._volume, force=True, wait=False)
+        self.set_brightness(self._brightness, force=True, wait=False)
 
     def send(self, data, minclock=0, reqclock=0):
         try:
@@ -179,11 +179,13 @@ class T5UID1:
             raise self.error("Invalid response")
         return result
 
-    def write(self, address, data=None):
+    def write(self, address, data=None, wait=True):
         if type(address) is tuple:
             data = address[1]
             address = address[0]
         cdata = lib.write(address, data)
+        if not wait:
+            return self.send(cdata)
         while True:
             if self.printer.is_shutdown():
                 raise self.error("Printer is shutdown")
@@ -213,9 +215,9 @@ class T5UID1:
         _, page = lib.unpack(self.read(lib.get_page()), "uint8", "uint8")
         return page
 
-    def set_page(self, page):
+    def set_page(self, page, wait=True):
         address, cdata = lib.set_page(page)
-        self.write(address, cdata)
+        self.write(address, cdata, wait=wait)
         systime = self.reactor.monotonic()
         timeout = systime + COMMAND_TIMEOUT
         while not self.printer.is_shutdown():
@@ -226,11 +228,12 @@ class T5UID1:
                 raise self.error("Timeout waiting for acknowledgement")
             systime = self.reactor.pause(systime + 0.050)
 
-    def play_sound(self, start, slen=1, volume=-1):
+    def play_sound(self, start, slen=1, volume=-1, wait=True):
         if volume < 0:
             volume = self._volume
         volume = self.map_range(volume, 0, 100, 0, 255)
-        self.write(lib.play_sound(start, slen, volume))
+        address, cdata = lib.play_sound(start, slen, volume)
+        self.write(address, cdata, wait=wait)
 
     def stop_sound(self):
         self.play_sound(0, 0)
@@ -241,10 +244,11 @@ class T5UID1:
         volume, = lib.unpack(self.read(lib.get_volume()), "uint8")
         return self.map_range(volume, 0, 255, 0, 100)
 
-    def set_volume(self, volume, save=False, force=False):
+    def set_volume(self, volume, save=False, force=False, wait=True):
         if not force and volume == self._volume:
             return
-        self.write(lib.set_volume(self.map_range(volume, 0, 100, 0, 255)))
+        address, cdata = lib.set_volume(self.map_range(volume, 0, 100, 0, 255))
+        self.write(address, cdata, wait=wait)
         if save:
             self._volume = volume
             configfile = self.printer.lookup_object("configfile")
@@ -256,10 +260,11 @@ class T5UID1:
         brightness, = lib.unpack(self.read(lib.get_brightness()), "uint8")
         return brightness
 
-    def set_brightness(self, brightness, save=False, force=False):
+    def set_brightness(self, brightness, save=False, force=False, wait=True):
         if not force and brightness == self._brightness:
             return
-        self.write(lib.set_brightness(brightness))
+        address, cdata = lib.set_brightness(brightness)
+        self.write(address, cdata, wait=wait)
         if save:
             self._brightness = brightness
             configfile = self.printer.lookup_object("configfile")
@@ -369,7 +374,7 @@ class T5UID1:
         volume = gcmd.get_int("VOLUME", minval=0, maxval=100)
         save = gcmd.get_int("SAVE", 0)
         try:
-            self.set_volume(volume, save)
+            self.set_volume(volume, save=save)
         except self.error as e:
             raise gcmd.error(str(e))
 
@@ -386,6 +391,6 @@ class T5UID1:
         brightness = gcmd.get_int("BRIGHTNESS", minval=0, maxval=100)
         save = gcmd.get_int("SAVE", 0)
         try:
-            self.set_brightness(brightness, save)
+            self.set_brightness(brightness, save=save)
         except self.error as e:
             raise gcmd.error(str(e))
