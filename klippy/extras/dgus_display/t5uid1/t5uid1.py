@@ -218,6 +218,8 @@ class T5UID1:
     def set_page(self, page, wait=True):
         address, cdata = lib.set_page(page)
         self.write(address, cdata, wait=wait)
+        if not wait:
+            return
         systime = self.reactor.monotonic()
         timeout = systime + COMMAND_TIMEOUT
         while not self.printer.is_shutdown():
