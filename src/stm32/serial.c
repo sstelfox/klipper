@@ -33,6 +33,35 @@ struct bus_info {
 
   #define USART_BRR_DIV_Mantissa_Pos USART_BRR_DIV_MANTISSA_Pos
   #define USART_BRR_DIV_Fraction_Pos USART_BRR_DIV_FRACTION_Pos
+#elif CONFIG_MACH_STM32G0
+  #define USART_FUNCTION(fn) GPIO_FUNCTION(fn)
+
+  #define USART_SR(usart)  (usart)->ISR
+  #define USART_RDR(usart) (usart)->RDR
+  #define USART_TDR(usart) (usart)->TDR
+
+  #define USART2_IRQn      USART2_LPUART2_IRQn
+  #define USART_CR1_RXNEIE USART_CR1_RXNEIE_RXFNEIE
+  #define USART_CR1_TXEIE  USART_CR1_TXEIE_TXFNFIE
+  #define USART_SR_RXNE    USART_ISR_RXNE_RXFNE
+  #define USART_SR_ORE     USART_ISR_ORE
+  #define USART_SR_TXE     USART_ISR_TXE_TXFNF
+
+  #define USART_BRR_DIV_Mantissa_Pos 4
+  #define USART_BRR_DIV_Fraction_Pos 0
+#elif CONFIG_MACH_STM32H7
+  #define USART_FUNCTION(fn) GPIO_FUNCTION(7)
+
+  #define USART_SR(usart)  (usart)->ISR
+  #define USART_RDR(usart) (usart)->RDR
+  #define USART_TDR(usart) (usart)->TDR
+
+  #define USART_SR_RXNE    USART_ISR_RXNE_RXFNE
+  #define USART_SR_ORE     USART_ISR_ORE
+  #define USART_SR_TXE     USART_ISR_TXE_TXFNF
+
+  #define USART_BRR_DIV_Mantissa_Pos USART_BRR_DIV_MANTISSA_Pos
+  #define USART_BRR_DIV_Fraction_Pos USART_BRR_DIV_FRACTION_Pos
 #else
   #define USART_FUNCTION(fn) GPIO_FUNCTION(7)
 
@@ -48,7 +77,7 @@ DECL_CONSTANT_STR("BUS_PINS_usart1", "[_],PA10,PA9");
 DECL_CONSTANT_STR("BUS_PINS_usart2", "[_],PA3,PA2");
 DECL_CONSTANT_STR("BUS_PINS_usart1a", "[usart1],PB7,PB6");
 
-#if CONFIG_MACH_STM32F0
+#if CONFIG_MACH_STM32F0 || CONFIG_MACH_STM32G0
   DECL_CONSTANT_STR("BUS_PINS_usart2a", "[usart2],PA15,PA14");
 #else
   DECL_CONSTANT_STR("BUS_PINS_usart2a", "[usart2],PD6,PD5");
@@ -58,6 +87,11 @@ DECL_CONSTANT_STR("BUS_PINS_usart1a", "[usart1],PB7,PB6");
     DECL_ENUMERATION("uart_bus", "usart3a", 5);
     DECL_CONSTANT_STR("BUS_PINS_usart3", "[_],PB11,PB10");
     DECL_CONSTANT_STR("BUS_PINS_usart3a", "[usart3],PD9,PD8");
+
+    #if CONFIG_MACH_STM32H7
+        DECL_ENUMERATION("uart_bus", "uart4", 6);
+        DECL_CONSTANT_STR("BUS_PINS_uart4", "[_],PA1,PA0");
+    #endif
   #endif
 #endif
 
@@ -65,13 +99,16 @@ static const struct bus_info bus_data[] = {
     { 1, USART1, USART1_IRQn, GPIO('A', 10), GPIO('A', 9), USART_FUNCTION(1) },
     { 2, USART2, USART2_IRQn, GPIO('A', 3), GPIO('A', 2), USART_FUNCTION(1) },
     { 1, USART1, USART1_IRQn, GPIO('B', 7), GPIO('B', 6), USART_FUNCTION(0) },
-#if CONFIG_MACH_STM32F0
+#if CONFIG_MACH_STM32F0 || CONFIG_MACH_STM32G0
     { 2, USART2, USART2_IRQn, GPIO('A', 15), GPIO('A', 14), USART_FUNCTION(1) },
 #else
     { 2, USART2, USART2_IRQn, GPIO('D', 6), GPIO('D', 5), USART_FUNCTION(1) },
   #ifdef USART3
     { 3, USART3, USART3_IRQn, GPIO('B', 11), GPIO('B', 10), USART_FUNCTION(7) },
     { 3, USART3, USART3_IRQn, GPIO('D', 9), GPIO('D', 8), USART_FUNCTION(7) },
+    #if CONFIG_MACH_STM32H7
+    { 4, UART4, UART4_IRQn, GPIO('A', 1), GPIO('A', 0), GPIO_FUNCTION(8) },
+    #endif
   #endif
 #endif
 };
@@ -113,7 +150,7 @@ USART2_IRQHandler(void)
 }
 DECL_ARMCM_IRQ(USART2_IRQHandler, USART2_IRQn);
 
-#if !CONFIG_MACH_STM32F0 && defined(USART3)
+#if !CONFIG_MACH_STM32F0 && !CONFIG_MACH_STM32G0 && defined(USART3)
 
 void
 USART3_IRQHandler(void)

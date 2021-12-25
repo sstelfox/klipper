@@ -241,16 +241,13 @@ setup_dev_uart(const struct bus_info *bi, uint32_t baud, uint8_t *id
 
     // Reset uart
     enable_pclock(bi->dev_id);
-    uart->UART_PTCR = UART_PTCR_RXTDIS | UART_PTCR_TXTDIS;
     uart->UART_CR = (UART_CR_RSTRX | UART_CR_RSTTX
                      | UART_CR_RXDIS | UART_CR_TXDIS);
     uart->UART_IDR = 0xFFFFFFFF;
 
     // Enable uart
     uart->UART_MR = (UART_MR_PAR_NO | UART_MR_CHMODE_NORMAL);
-    uint32_t div = DIV_ROUND_CLOSEST(SystemCoreClock, 16 * baud);
-    uart->UART_BRGR = UART_BRGR_CD(div);
-
+    uart->UART_BRGR = get_pclock_frequency((bi->dev_id) / (16 * baud));
     uart->UART_IER = UART_IER_RXRDY;
     NVIC_SetPriority(bi->irqn, priority);
     NVIC_EnableIRQ(bi->irqn);

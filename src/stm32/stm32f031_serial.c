@@ -16,22 +16,22 @@
   DECL_CONSTANT_STR("RESERVE_PINS_serial", "PA10,PA9");
   #define GPIO_Rx GPIO('A', 10)
   #define GPIO_Tx GPIO('A', 9)
-  #define USART1_FUNCTION GPIO_FUNCTION(1)
+  #define USARTx_FUNCTION GPIO_FUNCTION(1)
 #elif CONFIG_STM32_SERIAL_USART2
   DECL_CONSTANT_STR("RESERVE_PINS_serial", "PA3,PA2");
   #define GPIO_Rx GPIO('A', 3)
   #define GPIO_Tx GPIO('A', 2)
-  #define USART1_FUNCTION GPIO_FUNCTION(1)
+  #define USARTx_FUNCTION GPIO_FUNCTION(1)
 #elif CONFIG_STM32_SERIAL_USART1_ALT_PB7_PB6
   DECL_CONSTANT_STR("RESERVE_PINS_serial", "PB7,PB6");
   #define GPIO_Rx GPIO('B', 7)
   #define GPIO_Tx GPIO('B', 6)
-  #define USART1_FUNCTION GPIO_FUNCTION(0)
+  #define USARTx_FUNCTION GPIO_FUNCTION(0)
 #elif CONFIG_STM32_SERIAL_USART2_ALT_PA15_PA14
   DECL_CONSTANT_STR("RESERVE_PINS_serial", "PA15,PA14");
   #define GPIO_Rx GPIO('A', 15)
   #define GPIO_Tx GPIO('A', 14)
-  #define USART1_FUNCTION GPIO_FUNCTION(1)
+  #define USARTx_FUNCTION GPIO_FUNCTION(1)
 #endif
 
 #define CR1_FLAGS (USART_CR1_UE | USART_CR1_RE | USART_CR1_TE   \
@@ -65,8 +65,8 @@ uart_setup(uint8_t bus, uint32_t baud, uint8_t *id, uint32_t priority)
     USART1->CR1 = CR1_FLAGS;
     armcm_enable_irq(USART1_IRQHandler, USART1_IRQn, priority);
 
-    gpio_peripheral(GPIO_Rx, USART1_FUNCTION, 1);
-    gpio_peripheral(GPIO_Tx, USART1_FUNCTION, 0);
+    gpio_peripheral(GPIO_Rx, USARTx_FUNCTION, 1);
+    gpio_peripheral(GPIO_Tx, USARTx_FUNCTION, 0);
 
     *id = 0;
 

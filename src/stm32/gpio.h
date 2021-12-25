@@ -58,6 +58,8 @@ void i2c_read(struct i2c_config config, uint8_t reg_len, uint8_t *reg
 
 #if CONFIG_MACH_STM32F031
   #define GPIO_UART_MAX_ID 1
+#elif CONFIG_MACH_STM32H7
+  #define GPIO_UART_MAX_ID 5
 #else
   #define GPIO_UART_MAX_ID 4
 #endif
