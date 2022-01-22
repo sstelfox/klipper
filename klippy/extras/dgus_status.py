@@ -18,6 +18,7 @@ class DGUSStatus:
         self.progress = None
         self.filename = None
         self.finish_at = None
+        self.finish_at_naive = None
         self.pause_at = None
 
         self.idle_timeout = None
@@ -61,6 +62,7 @@ class DGUSStatus:
         self.progress = None
         self.filename = None
         self.finish_at = None
+        self.finish_at_naive = None
         self.pause_at = None
 
     def check_pause(self, eventtime):
@@ -73,6 +75,8 @@ class DGUSStatus:
                 self.start_at += pause_duration
             if self.finish_at is not None:
                 self.finish_at += pause_duration
+            if self.finish_at_naive is not None:
+                self.finish_at_naive[1] += pause_duration
             self.pause_at = None
         return eventtime + 5.
 
@@ -179,11 +183,16 @@ class DGUSStatus:
                 remaining_time = self.finish_at - eventtime
         else:
             progress = self.get_progress(eventtime)
-            printing_time = self.get_printing_time(eventtime)
-            if (progress is None or progress < 0.01
-                or printing_time is None or printing_time < 300):
-                return None
-            remaining_time = float(printing_time) / progress * (1. - progress)
+            if (self.finish_at_naive is None
+                or self.finish_at_naive[0] != progress):
+                printing_time = self.get_printing_time(eventtime)
+                if (progress is None or progress < 0.05
+                    or printing_time is None or printing_time < 300):
+                    return None
+                remaining = (1. - progress) / progress
+                remaining_time = int(round(float(printing_time) * remaining))
+                self.finish_at_naive = (progress, eventtime + remaining_time)
+            remaining_time = self.finish_at_naive[1] - eventtime
         return max(0, int(round(remaining_time)))
 
     def get_status(self, eventtime):
@@ -227,6 +236,7 @@ class DGUSStatus:
                     self.finish_at = self.reactor.monotonic() + remaining * 60
                 else:
                     self.finish_at = None
+                self.finish_at_naive = None
         if self.M73_original is not None:
             self.M73_original(gcmd)
 
