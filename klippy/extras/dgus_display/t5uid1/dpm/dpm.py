@@ -424,15 +424,21 @@ class DGUSPrinterMenu:
             return self.reactor.NEVER
         try:
             message = ""
+            timeout = self.message_timeout
             if self.pending_message is not None:
                 message = self.pending_message
-                self.pending_message = None
+                if len(message) > 32:
+                    self.pending_message = message[32:]
+                    message = message[0:32]
+                    timeout = min(timeout, 10.)
+                else:
+                    self.pending_message = None
             try:
                 self.set_display_control("global", "message", message)
             except Exception as e:
                 logging.error("DPM: Error during message callback: %s" % str(e))
             if message:
-                return eventtime + self.message_timeout
+                return eventtime + timeout
             return self.reactor.NEVER
         finally:
             self.message_lock.release()
