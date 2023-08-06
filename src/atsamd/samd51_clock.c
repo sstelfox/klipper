@@ -39,11 +39,13 @@ route_pclock(uint32_t pclk_id, uint32_t clkgen_id)
 
 // Enable a peripheral clock and power to that peripheral
 void
-enable_pclock(uint32_t pclk_id, uint32_t pm_id)
+enable_pclock(uint32_t pclk_id, int32_t pm_id)
 {
     route_pclock(pclk_id, CLKGEN_48M);
-    uint32_t pm_port = pm_id / 32, pm_bit = 1 << (pm_id % 32);
-    (&MCLK->APBAMASK.reg)[pm_port] |= pm_bit;
+    if (pm_id >= 0) {
+        uint32_t pm_port = pm_id / 32, pm_bit = 1 << (pm_id % 32);
+        (&MCLK->APBAMASK.reg)[pm_port] |= pm_bit;
+    }
 }
 
 // Return the frequency of the given peripheral clock
@@ -100,6 +102,35 @@ DECL_CONSTANT_STR("RESERVE_PINS_crystal", "PA0,PA1");
 #elif CONFIG_CLOCK_REF_X25M
 DECL_CONSTANT_STR("RESERVE_PINS_crystal", "PB22,PB23");
 #endif
+
+// Initialize the clocks using an external 25M crystal connected to XOSC1
+static void
+clock_init_25m(void)
+{
+    // Enable XOSC1
+    uint32_t val = (OSCCTRL_XOSCCTRL_ENABLE | OSCCTRL_XOSCCTRL_XTALEN
+                    | OSCCTRL_XOSCCTRL_IPTAT(3) | OSCCTRL_XOSCCTRL_IMULT(6));
+    OSCCTRL->XOSCCTRL[1].reg = val;
+    while (!(OSCCTRL->STATUS.reg & OSCCTRL_STATUS_XOSCRDY1))
+        ;
+
+    // Generate 120Mhz clock on PLL0 (with XOSC1 as reference)
+    uint32_t mul = DIV_ROUND_CLOSEST(FREQ_MAIN, 2500000);
+    uint32_t ctrlb = (OSCCTRL_DPLLCTRLB_DIV(4)
+                      | OSCCTRL_DPLLCTRLB_REFCLK_XOSC1);
+    config_dpll(0, mul, ctrlb);
+
+    // Switch main clock to 120Mhz PLL0
+    gen_clock(CLKGEN_MAIN, GCLK_GENCTRL_SRC_DPLL0);
+
+    // Generate 48Mhz clock on PLL1 (with XOSC1 as reference)
+    ctrlb = (OSCCTRL_DPLLCTRLB_DIV(24)
+             | OSCCTRL_DPLLCTRLB_REFCLK_XOSC1);
+    config_dpll(1, 96, ctrlb);
+
+    // Switch 48Mhz clock to PLL1
+    gen_clock(CLKGEN_48M, GCLK_GENCTRL_SRC_DPLL1);
+}
 
 // Initialize the clocks using an external 32K crystal
 static void

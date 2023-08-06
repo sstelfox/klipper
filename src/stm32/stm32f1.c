@@ -51,6 +51,27 @@ gpio_clock_enable(GPIO_TypeDef *regs)
     RCC->APB2ENR;
 }
 
+
+// Handle USB reboot requests
+void
+usb_request_bootloader(void)
+{
+    if (!(CONFIG_STM32_FLASH_START_2000 || CONFIG_STM32_FLASH_START_800))
+        return;
+    // Enter "stm32duino" or HID bootloader
+    irq_disable();
+    RCC->APB1ENR |= RCC_APB1ENR_PWREN | RCC_APB1ENR_BKPEN;
+    PWR->CR |= PWR_CR_DBP;
+    if (CONFIG_STM32_FLASH_START_800)
+        // HID Bootloader magic key
+        BKP->DR4 = 0x424C;
+    else
+        // stm32duino bootloader magic key
+        BKP->DR10 = 0x01;
+    PWR->CR &=~ PWR_CR_DBP;
+    NVIC_SystemReset();
+}
+
 // Main clock setup called at chip startup
 static void
 clock_setup(void)
@@ -191,9 +212,18 @@ gpio_peripheral(uint32_t gpio, uint32_t mode, int pullup)
                                       AFIO_MAPR_SPI1_REMAP);
     } else if (func == 7) {
         // USART
-        if (gpio == GPIO('B', 6) || gpio == GPIO('B', 7))
+        if (gpio == GPIO('A', 2) || gpio == GPIO('A', 3))
+            stm32f1_alternative_remap(AFIO_MAPR_USART2_REMAP_Msk,
+                                      0);
+        else if (gpio == GPIO('A', 9) || gpio == GPIO('A', 10))
+            stm32f1_alternative_remap(AFIO_MAPR_USART1_REMAP_Msk,
+                                      0);
+        else if (gpio == GPIO('B', 6) || gpio == GPIO('B', 7))
             stm32f1_alternative_remap(AFIO_MAPR_USART1_REMAP_Msk,
                                       AFIO_MAPR_USART1_REMAP);
+        else if (gpio == GPIO('C', 10) || gpio == GPIO('C', 11))
+            stm32f1_alternative_remap(AFIO_MAPR_USART3_REMAP_Msk,
+                                      AFIO_MAPR_USART3_REMAP_PARTIALREMAP);
         else if (gpio == GPIO('D', 5) || gpio == GPIO('D', 6))
             stm32f1_alternative_remap(AFIO_MAPR_USART2_REMAP_Msk,
                                       AFIO_MAPR_USART2_REMAP);
@@ -205,6 +235,9 @@ gpio_peripheral(uint32_t gpio, uint32_t mode, int pullup)
                                       AFIO_MAPR_USART3_REMAP_FULLREMAP);
     } else if (func == 9) {
         // CAN
+        if (gpio == GPIO('A', 11) || gpio == GPIO('A', 12))
+            stm32f1_alternative_remap(AFIO_MAPR_CAN_REMAP_Msk,
+                                      AFIO_MAPR_CAN_REMAP_REMAP1);
         if (gpio == GPIO('B', 8) || gpio == GPIO('B', 9))
             stm32f1_alternative_remap(AFIO_MAPR_CAN_REMAP_Msk,
                                       AFIO_MAPR_CAN_REMAP_REMAP2);
