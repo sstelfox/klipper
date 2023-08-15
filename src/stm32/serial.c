@@ -119,11 +119,11 @@ static const struct bus_info bus_data[] = {
 void
 USART1_IRQHandler(void)
 {
-    uint32_t sr = USARTx->SR;
+    uint32_t sr = USART_SR(USART1);
     if (sr & (USART_SR_RXNE | USART_SR_ORE)) {
         // The ORE flag is automatically cleared by reading SR, followed
         // by reading DR.
-        serial_rx_byte(USARTx->DR);
+        serial_rx_byte(1, USART_RDR(USART1));
     }
     if (sr & USART_SR_TXE && USARTx->CR1 & USART_CR1_TXEIE) {
         uint8_t data;
