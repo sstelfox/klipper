@@ -125,7 +125,7 @@ USART1_IRQHandler(void)
         // by reading DR.
         serial_rx_byte(1, USART_RDR(USART1));
     }
-    if (sr & USART_SR_TXE && USARTx->CR1 & USART_CR1_TXEIE) {
+    if (sr & USART_SR_TXE && USART1->CR1 & USART_CR1_TXEIE) {
         uint8_t data;
         int ret = serial_get_tx_byte(1, &data);
         if (ret)
